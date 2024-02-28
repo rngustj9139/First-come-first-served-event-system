@@ -12,4 +12,8 @@ public class CouponCreateProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    public void create(Long userId) {
+        kafkaTemplate.send("coupon_create", userId); // coupon_create 토픽에 userId를 송신
+    }
+
 }
