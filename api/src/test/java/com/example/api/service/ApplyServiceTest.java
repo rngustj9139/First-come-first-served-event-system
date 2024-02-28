@@ -45,8 +45,13 @@ class ApplyServiceTest {
      */
 
     /**
-     * 위의 문제를 해결하기 위해 kafka의 도입이 필요하다.
+     * 위의 문제를 해결하기 위해 kafka의 도입이 필요하다. (implementation 'org.springframework.kafka:spring-kafka' 의존성 추가 필요)
      * docker-compose.yml 파일 작성 후 인텔리제이 터미널에서 docker-compose up -d 명령어 실행
+     * kafka란 분산 이벤트 스트리밍 플랫폼이다. (Producer, Topic, Consumer로 이루어저있으며 Topic은 큐와 같은 개념이다.) (이벤트 스트리밍이란 소스에서 목적지까지 이벤트를 실시간으로 스트리밍 하는 작업을 의미)
+     * (토픽 생성) docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --create --topic testTopic
+     * (프로듀서 실행) docker exec -it kafka kafka-console-producer.sh --topic testTopic --broker-list 0.0.0.0:9092
+     * (cmd 하나 더 실행 후 컨슈머 실행) docker exec -it kafka kafka-console-consumer.sh --topic testTopic --bootstrap-server localhost:9092
+     * 이후 프로듀서가 실행된 cmd에 hello를 입력하면 컨슈머가 실행된 cmd에 hello라는 문자열이 보이게 된다.
      */
 
     @Autowired
