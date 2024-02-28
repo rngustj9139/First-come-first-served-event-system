@@ -52,6 +52,9 @@ class ApplyServiceTest {
      * (프로듀서 실행) docker exec -it kafka kafka-console-producer.sh --topic testTopic --broker-list 0.0.0.0:9092
      * (cmd 하나 더 실행 후 컨슈머 실행) docker exec -it kafka kafka-console-consumer.sh --topic testTopic --bootstrap-server localhost:9092
      * 이후 프로듀서가 실행된 cmd에 hello를 입력하면 컨슈머가 실행된 cmd에 hello라는 문자열이 보이게 된다.
+     *
+     * (쿠폰 로직 토픽 생성) docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --create --topic coupon_create
+     * (쿠폰 로직 컨슈머 생성) docker exec -it kafka kafka-console-consumer.sh --topic coupon_create --bootstrap-server localhost:9092 --key-deserializer "org.apache.kafka.common.serialization.StringDeserializer" --value-deserializer "org.apache.kafka.common.serialization.LongDeserializer"
      */
 
     @Autowired
@@ -62,7 +65,7 @@ class ApplyServiceTest {
 
     @Test
     public void 한번만응모() { // success
-        applyService.apply(1L);
+        applyService.apply1(1L);
 
         long count = couponRepository.count();
 
@@ -70,7 +73,7 @@ class ApplyServiceTest {
     }
 
     @Test
-    public void 동시에여러명이응모() throws InterruptedException { // fail (race condition 발생)
+    public void 동시에여러명이응모() throws InterruptedException { // fail (첫 방법으로는 race condition 발생)
         int threadCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -79,7 +82,30 @@ class ApplyServiceTest {
             long userId = i;
             executorService.submit(() -> {
                 try {
-                    applyService.apply(userId);
+                    applyService.apply1(userId);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        long count = couponRepository.count();
+        Assertions.assertThat(count).isEqualTo(100); // ApplyService에서 DB에 저장될 수 있는 쿠폰의 최대 개수를 100개로 설정해놓았음
+    }
+
+    @Test
+    public void 동시에여러명이응모_kafka() throws InterruptedException { // 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
+        int threadCount = 1000;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            long userId = i;
+            executorService.submit(() -> {
+                try {
+                    applyService.apply2(userId);
                 } finally {
                     latch.countDown();
                 }
