@@ -38,7 +38,8 @@ class ApplyServiceTest {
      * 위의 플로우처럼 A 라는 유저가 10시에 lock 을 획득하였고 10:03 에 lock 을 해제할 때 다른유저들은 10:00 ~ 10:03 까지 쿠폰생성 메소드에 진입을 하지 못하고
      * lock 을 획득할 때까지 대기하게 된다. 그로인하여 처리량이 낮아지게 되고 이는 성능 저하를 초래함을 의미한다.
      *
-     * 또한 redis는 싱글 스레드를 이용하기 때문에 동시성 문제가 발생하지 않는 장점을 가지고 있기 때문에 redis를 이용한다.
+     * 또한 redis는 싱글 스레드를 이용하기 때문에 동시성 문제가 발생하지 않는 장점을 가지고 있기 때문에 redis를 이용한다. 또한 redis는 인메모리 DB이기 때문에
+     * DB Lock 보다 성능이 뛰어나다는 장점을 가지고 있다.
      *
      * 하지만 mysql이 1분에 100개의 insert가 가능하다고 가정하고, 10시 정각에 10000개의 쿠폰생성 요청이 들어오는 경우 100분이 걸리게 된다. 따라서 10시 정각
      * 이후에 들어온 쿠폰 생성이 아닌 다른 요청들은 100분 이후에 처리 되게 된다(AWS와 nGrinder를 통해 부하테스트가 가능하다)
@@ -73,7 +74,7 @@ class ApplyServiceTest {
     }
 
     @Test
-    public void 동시에여러명이응모() throws InterruptedException { // fail (첫 방법으로는 race condition 발생)
+    public void 동시에여러명이응모() throws InterruptedException { // fail (첫 방법으로는 race condition 발생, redis를 이용할 경우 success)
         int threadCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);

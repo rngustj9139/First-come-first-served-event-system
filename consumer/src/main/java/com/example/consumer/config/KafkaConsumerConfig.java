@@ -31,7 +31,6 @@ public class KafkaConsumerConfig {
     @Bean // Consumer가 Topic을 통해 메세지를 받을 수 있도록 하는 리스너 구현
     public ConcurrentKafkaListenerContainerFactory<String, Long> concurrentKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Long> factory = new ConcurrentKafkaListenerContainerFactory<>();
-
         factory.setConsumerFactory(consumerFactory());
 
         return factory;
