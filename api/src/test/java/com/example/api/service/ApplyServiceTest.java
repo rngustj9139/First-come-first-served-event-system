@@ -39,7 +39,7 @@ class ApplyServiceTest {
      * lock 을 획득할 때까지 대기하게 된다. 그로인하여 처리량이 낮아지게 되고 이는 성능 저하를 초래함을 의미한다.
      *
      * 또한 redis는 싱글 스레드를 이용하기 때문에 동시성 문제가 발생하지 않는 장점을 가지고 있기 때문에 redis를 이용한다. 또한 redis는 인메모리 DB이기 때문에
-     * DB Lock 보다 성능이 뛰어나다는 장점을 가지고 있다.
+     * DB Lock 보다 성능이 뛰어나다는 장점을 가지고 있다. (redis는 O(1)의 시간복잡도를 갖는다.)
      *
      * 하지만 mysql이 1분에 100개의 insert가 가능하다고 가정하고, 10시 정각에 10000개의 쿠폰생성 요청이 들어오는 경우 100분이 걸리게 된다. 따라서 10시 정각
      * 이후에 들어온 쿠폰 생성이 아닌 다른 요청들은 100분 이후에 처리 되게 된다(AWS와 nGrinder를 통해 부하테스트가 가능하다)
@@ -56,6 +56,8 @@ class ApplyServiceTest {
      *
      * (쿠폰 로직 토픽 생성) docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --create --topic coupon_create
      * (쿠폰 로직 컨슈머 생성) docker exec -it kafka kafka-console-consumer.sh --topic coupon_create --bootstrap-server localhost:9092 --key-deserializer "org.apache.kafka.common.serialization.StringDeserializer" --value-deserializer "org.apache.kafka.common.serialization.LongDeserializer"
+     *
+     * CouponCreatedConsumer 클래스 개발 후 ConsumerApplication 실행하고 아래 동시에여러명이응모_kafka() 테스트 수행하기
      */
 
     @Autowired
@@ -96,8 +98,11 @@ class ApplyServiceTest {
         Assertions.assertThat(count).isEqualTo(100); // ApplyService에서 DB에 저장될 수 있는 쿠폰의 최대 개수를 100개로 설정해놓았음
     }
 
+    /**
+     * 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
+     */
     @Test
-    public void 동시에여러명이응모_kafka() throws InterruptedException { // 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
+    public void 동시에여러명이응모_kafka() throws InterruptedException {
         int threadCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
