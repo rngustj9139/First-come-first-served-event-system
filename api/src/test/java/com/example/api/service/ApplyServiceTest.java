@@ -102,7 +102,7 @@ class ApplyServiceTest {
      * 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
      */
     @Test
-    public void 동시에여러명이응모_kafka() throws InterruptedException {
+    public void 동시에여러명이응모_kafka() throws InterruptedException { // Producer가 Consumer에게 데이터를 전송하고 Consumer의 데이터 처리가 끝나기 전에 Test가 종료되어서 fail이 발생한다. => Thread.sleep을 통해 10초의 간격을 발생시키면 된다.
         int threadCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
