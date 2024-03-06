@@ -16,8 +16,7 @@ public class FailedEvent { // 쿠폰 발급이 실패했을 경우 로그를 남
     public FailedEvent() {
     }
 
-    public FailedEvent(Long id, Long userId) {
-        this.id = id;
+    public FailedEvent(Long userId) {
         this.userId = userId;
     }
 

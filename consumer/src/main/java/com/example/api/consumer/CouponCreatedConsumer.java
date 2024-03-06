@@ -1,6 +1,7 @@
 package com.example.api.consumer;
 
 import com.example.api.domain.Coupon;
+import com.example.api.domain.FailedEvent;
 import com.example.api.repository.CouponRepository;
 import com.example.api.repository.FailedEventRepository;
 import org.slf4j.Logger;
@@ -24,8 +25,14 @@ public class CouponCreatedConsumer {
 
     @KafkaListener(topics = "coupon_create", groupId = "group_1")
     public void listener(Long userID) {
-        System.out.println("======= listener on =======" + userID.toString());
-        couponRepository.save(new Coupon(userID));
+        try {
+            System.out.println("======= listener on =======" + userID.toString());
+            couponRepository.save(new Coupon(userID));
+        } catch (Exception e) {
+            logger.error("error occurs during making coupon by" + userID.toString());
+            failedEventRepository.save(new FailedEvent(userID)); // 쿠폰 생성에 실패할 경우 로그와 DB에 데이터를 남기고 이후 배치 프로그램을 통해 쿠폰을 생성해주면 된다.
+        }
+
     }
 
 }
