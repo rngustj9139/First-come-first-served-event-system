@@ -73,6 +73,9 @@ class ApplyServiceTest {
         Assertions.assertThat(count).isEqualTo(1);
     }
 
+    /**
+     * 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
+     */
     @Test
     public void 동시에여러명이응모() throws InterruptedException { // fail (첫 방법으로는 race condition 발생, redis를 이용할 경우 success)
         int threadCount = 1000;
@@ -122,6 +125,34 @@ class ApplyServiceTest {
 
         long count = couponRepository.count();
         Assertions.assertThat(count).isEqualTo(100); // ApplyService에서 DB에 저장될 수 있는 쿠폰의 최대 개수를 100개로 설정해놓았음
+    }
+
+    /**
+     * 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
+     */
+    @Test
+    public void 동시에여러명이응모_유저당쿠폰한개만발급_kafka() throws InterruptedException { // Producer가 Consumer에게 데이터를 전송하고 Consumer가 데이터를 수신하고 처리가 끝나기 전에 Test가 종료되어서 fail이 발생한다. => Thread.sleep을 통해 10초의 간격을 발생시키면 된다.
+        int threadCount = 1000;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            long userId = i;
+            executorService.submit(() -> {
+                try {
+                    applyService.apply3(1L); // userId를 1로 고정
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        Thread.sleep(10000);
+
+        long count = couponRepository.count();
+        Assertions.assertThat(count).isEqualTo(1); // ApplyService에서 DB에 저장될 수 있는 쿠폰의 최대 개수를 100개로 설정해놓았음
     }
 
 }
