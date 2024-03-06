@@ -1,4 +1,4 @@
-package com.example.consumer.domain;
+package com.example.api.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +22,10 @@ public class Coupon {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
 }

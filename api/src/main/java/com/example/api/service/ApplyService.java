@@ -43,6 +43,4 @@ public class ApplyService {
         couponCreateProducer.create(userId);
     }
 
-
-
 }

@@ -1,9 +1,8 @@
-package com.example.consumer.consumer;
+package com.example.api.consumer;
 
-import com.example.consumer.domain.Coupon;
-import com.example.consumer.repository.CouponRepository;
+import com.example.api.domain.Coupon;
+import com.example.api.repository.CouponRepository;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +15,7 @@ public class CouponCreatedConsumer {
     }
 
     @KafkaListener(topics = "coupon_create", groupId = "group_1")
-    public void listener(@Payload Long userID) {
+    public void listener(Long userID) {
         System.out.println("======= listener on =======" + userID);
         couponRepository.save(new Coupon(userID));
     }

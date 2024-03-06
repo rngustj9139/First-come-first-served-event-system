@@ -10,8 +10,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 class ApplyServiceTest {
 
@@ -102,7 +100,7 @@ class ApplyServiceTest {
      * 실행 전 redis를 cmd에서 접속하고 flushall 명령어 수행 필요
      */
     @Test
-    public void 동시에여러명이응모_kafka() throws InterruptedException { // Producer가 Consumer에게 데이터를 전송하고 Consumer의 데이터 처리가 끝나기 전에 Test가 종료되어서 fail이 발생한다. => Thread.sleep을 통해 10초의 간격을 발생시키면 된다.
+    public void 동시에여러명이응모_kafka() throws InterruptedException { // Producer가 Consumer에게 데이터를 전송하고 Consumer가 데이터를 수신하고 처리가 끝나기 전에 Test가 종료되어서 fail이 발생한다. => Thread.sleep을 통해 10초의 간격을 발생시키면 된다.
         int threadCount = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -119,6 +117,8 @@ class ApplyServiceTest {
         }
 
         latch.await();
+
+        Thread.sleep(10000);
 
         long count = couponRepository.count();
         Assertions.assertThat(count).isEqualTo(100); // ApplyService에서 DB에 저장될 수 있는 쿠폰의 최대 개수를 100개로 설정해놓았음

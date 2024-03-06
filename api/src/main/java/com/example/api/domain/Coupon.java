@@ -24,4 +24,8 @@ public class Coupon {
         return id;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
 }
